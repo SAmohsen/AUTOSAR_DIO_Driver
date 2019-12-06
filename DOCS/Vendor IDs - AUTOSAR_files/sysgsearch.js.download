@@ -1,0 +1,277 @@
+/***
+ *
+ * This file is part of the "Search" Extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ *  (c) 2017 Patrick Saar <patrick.saar@sysgrade.de>, Sysgrade GmbH
+ *
+ ***/
+
+var eid = {
+    tags: function () {
+        $.ajax({
+            async: true,
+            cache: false,
+            url: getUrl() + '/index.php' + '?eID=' + 'sysgsearchTagsEid'
+        }).done(function (html) {
+            html = '<div id="sysgsearch-tags" style="display: none !important;">' + html + '</div>';
+            $(html).appendTo('body');
+        });
+    }
+}
+
+var filter = {
+    openSelected: function () {
+        $('input[type="checkbox"]').each(function () {
+            if ($(this).prop('checked')) {
+//                console.log($(this).attr('name')+"\n");
+                $(this).parents('.panel-collapse').each(function() {
+                    $(this).prev('.panel-heading').find('.accordion-toggle.collapsed').trigger('click');
+                });
+            }
+        });
+    },
+    multiSelect: function ($el) {
+        var $div = $el.parent().parent().next('.panel-collapse');
+        var prop = false;
+
+        if ($el.prop('checked')) {
+            prop = true;
+            // open tab
+            $el.prev('.accordion-toggle.collapsed').trigger('click');
+
+            // check all children
+            $div.find('input[type="checkbox"]').each(function () {
+                $(this).prop('checked', prop);
+                if (prop) {
+                    $(this).prev('.accordion-toggle.collapsed').trigger('click');
+                }
+            });
+            
+            // check all parents, if all leafs are checked
+//            var allChecked = true;
+//            $el.parent().parent().find('.sub-filter > input[type="checkbox"]').each(function() {
+//                if (!$(this).prop('checked')) {
+//                    allChecked = false;
+//                }
+//            });
+//            if (allChecked) {
+//                $el.parents('.panel-collapse').each(function() {
+//                    $(this).prev('.panel-heading').find('input[type="checkbox"]').each(function() {
+//                        $(this).prop('checked', true);
+//                    });
+//                });    
+//            }
+        } else {
+            // uncheck all parents
+            $el.parents('.panel-collapse').each(function() {
+                $(this).prev('.panel-heading').find('input[type="checkbox"]').each(function() {
+                    $(this).prop('checked', false);
+                });
+            });
+            
+            // uncheck all children
+            $div.find('input[type="checkbox"]').each(function () {
+                $(this).prop('checked', false);
+            });
+        }
+    },
+    deleteAll: function () {
+        $('.tx-sysgsearch .filter-list input[type="checkbox"]').prop('checked', false);
+    }
+}
+
+function getUrl() {
+    return window.location.protocol + '//' + window.location.host;
+}
+
+$(document).ready(function () {
+    //eid.tags();
+
+    filter.openSelected();
+
+    $('.tx-sysgsearch .filter-list input[type="checkbox"]').click(function () {
+        filter.multiSelect($(this));
+    });
+
+    $('#sysgsearch-delete-all-filters').click(function () {
+        filter.deleteAll();
+        return false;
+    });
+
+    $('#sysgsearch-select-allfiles').click(function () {
+        var $div = $('.sysgsearch-result-list');
+        var prop = false;
+        var counter = 0;
+        if ($('#sysgsearch-select-allfiles').prop('checked')) {
+            prop = true;
+        }
+        $div.find('input[type="checkbox"]').each(function () {
+            $(this).prop('checked', prop);
+            if (prop) {
+                counter++;
+            }
+        });
+        $('#sysgsearch-select-allfiles-bottom').prop('checked', prop);
+        $('.counter-files').text(counter);
+    });
+
+    $('#sysgsearch-select-allfiles-bottom').click(function () {
+        var $div = $('.sysgsearch-result-list');
+        var prop = false;
+        var counter = 0;
+        if ($('#sysgsearch-select-allfiles-bottom').prop('checked')) {
+            prop = true;
+        }
+        $div.find('input[type="checkbox"]').each(function () {
+            $(this).prop('checked', prop);
+            if (prop) {
+                counter++;
+            }
+        });
+        $('#sysgsearch-select-allfiles').prop('checked', prop);
+        $('.counter-files').text(counter);
+    });
+
+    $('.sysgsearch-select-singlefile').click(function () {
+        var counter = 0;
+        var prop = false;
+        counter = parseInt($('.counter-files').first().text());
+        if ($(this).prop('checked')) {
+            prop = true;
+        }
+        if (prop) {
+            counter = counter + 1;
+        } else {
+            counter = counter - 1;
+        }
+        $('.counter-files').text(counter);
+    });
+
+});
+
+
+$(document).ready(function () {
+    var $ajaxContainer1 = $('.ajax-scroll-1');
+
+    $ajaxContainer1.infinitescroll({
+        navSelector: "ul.pagination",
+        nextSelector: "ul.pagination li.next-1 > a",
+        itemSelector: ".ajax-scroll-1",
+        donetext: '',
+        loadingText: '',
+        loadingImg: ''
+    }, function (json, opts) {
+        if (opts.state.currPage == $('.numberofpages-1').text()) {
+            $('#btn-load-more-1').hide();
+        } else {
+            $('#btn-load-more-1').show();
+        }
+    });
+
+    $(window).unbind('.infscr');
+
+    $('#btn-load-more-1').click(function () {
+        $ajaxContainer1.infinitescroll('retrieve');
+        return false;
+    });
+});
+
+/*
+$(document).ready(function () {
+    var $ajaxContainer2 = $('.ajax-scroll-2');
+
+    $ajaxContainer2.infinitescroll({
+        navSelector: "ul.pagination",
+        nextSelector: "ul.pagination li.next-2 > a",
+        itemSelector: ".ajax-scroll-2",
+        donetext: '',
+        loadingText: '',
+        loadingImg: ''
+    }, function (json, opts) {
+        if (opts.state.currPage == $('.numberofpages-2').text()) {
+            $('#btn-load-more-2').hide();
+        } else {
+            $('#btn-load-more-2').show();
+        }
+    });
+
+    $(window).unbind('.infscr');
+
+    $('#btn-load-more-2').click(function () {
+        $ajaxContainer2.infinitescroll('retrieve');
+        return false;
+    });
+});
+
+$(document).ready(function () {
+    var $ajaxContainer3 = $('.ajax-scroll-3');
+
+    $ajaxContainer3.infinitescroll({
+        navSelector: "ul.pagination",
+        nextSelector: "ul.pagination li.next-3 > a",
+        itemSelector: ".ajax-scroll-3",
+        donetext: '',
+        loadingText: '',
+        loadingImg: ''
+    }, function (json, opts) {
+        if (opts.state.currPage == $('.numberofpages-3').text()) {
+            $('#btn-load-more-3').hide();
+        } else {
+            $('#btn-load-more-3').show();
+        }
+    });
+
+    $(window).unbind('.infscr');
+
+    $('#btn-load-more-3').click(function () {
+        $ajaxContainer3.infinitescroll('retrieve');
+        return false;
+    });
+});
+
+$(document).ready(function () {
+    var $ajaxContainer4 = $('.ajax-scroll-4');
+
+    $ajaxContainer4.infinitescroll({
+        navSelector: "ul.pagination",
+        nextSelector: "ul.pagination li.next-4 > a",
+        itemSelector: ".ajax-scroll-4",
+        donetext: '',
+        loadingText: '',
+        loadingImg: ''
+    }, function (json, opts) {
+        if (opts.state.currPage == $('.numberofpages-4').text()) {
+            $('#btn-load-more-4').hide();
+        } else {
+            $('#btn-load-more-4').show();
+        }
+    });
+
+    $(window).unbind('.infscr');
+
+    $('#btn-load-more-4').click(function () {
+        $ajaxContainer4.infinitescroll('retrieve');
+        return false;
+    });
+});
+*/
+
+/*
+$(document).ready(function () {
+    $('.tokenizer').tokenize2({
+        tokensAllowCustom: true,
+        tokensMaxItems: 5,
+        placeholder: 'Search'
+    });
+    
+    $('.tokenizer + .tokenize').on('keyup', function(evt) {
+        var form = this.parentElement.parentElement;
+        if (evt.keyCode === 13) {
+            form.submit();
+        }
+    });
+});
+*/
